@@ -1,14 +1,3 @@
----
-title: Exploring Predictive Markers for Diabetes Using Principal Component Analysis
-  and Logistic Regression
-output:
-  pdf_document: default
-  html_document: default
-editor_options:
-  chunk_output_type: inline
----
-
-```{R}
 rm(list=ls())
 
 library(ggplot2)
@@ -17,22 +6,15 @@ library(ggfortify)
 library(factoextra)
 library(moments)
 
-knitr::purl("model.rmd", "model.R", documentation = 2)
-```
-
-```{R}
 diabetes <- read.csv("diabetes.csv", header=TRUE)
 head(diabetes)
 sapply(diabetes[c("age", "bmi", "HbA1c_level", "blood_glucose_level")], summary)
 
-
 diabetes_numeric <- diabetes %>% 
   select(c("age", "hypertension", "heart_disease", "bmi", "HbA1c_level", "blood_glucose_level"))
 
-#Create a scatterplot matrix
 pairs(diabetes_numeric, lower.panel = NULL)
 
-#Create histograms for all features
 par(mfrow=c(2,2)) # Set up 2x2 grid of plots
 
 hist(diabetes$age, main="Age", xlab="Years")
@@ -40,7 +22,6 @@ hist(diabetes$bmi, main="BMI", xlab="Value")
 hist(diabetes$HbA1c_level, main="HbA1c Level", xlab="mg/dL")
 hist(diabetes$blood_glucose_level, main="Blood Glucose Level", xlab="mg/dL")
 
-#Create bar graphs of discrete and categorical features
 ggplot(diabetes, aes(x = factor(gender), fill = factor(gender))) +
   geom_bar() +
   labs(title="Sex Distribution", x="Biological Sex", y="Count") +
@@ -69,7 +50,6 @@ ggplot(diabetes, aes(x = factor(heart_disease), fill = factor(heart_disease))) +
                     values = c("#56B4E9", "#E69F00"), 
                     labels = c("No", "Yes"))
 
-#Test the skewness in diabetes data
 age_skew <- skewness(diabetes$age)
 cat("Skewness of age:", age_skew, "\n")
 cat("Absolute skewness of age:", abs(age_skew), "\n")
@@ -87,22 +67,17 @@ glucose_skew <- skewness(diabetes$blood_glucose_level)
 cat("Skewness of blood glucose level:", glucose_skew, "\n")
 cat("Absolute skewness of blood glucose level:", abs(glucose_skew), "\n")
 
-knitr::purl("model.rmd", "model.R", documentation = 2)
-```
-
-```{R}
 data_select <- diabetes %>% select(age, bmi, HbA1c_level, blood_glucose_level)
 
 data_scale <- scale(data_select)
 
-#Create PCA model
 pca_model <- prcomp(data_scale, scale. = TRUE)
-pca_model 
+pca_model
+
 #PC1 is made up mostly of age, bmi. PC2 is made up mostly of A1c, blood glucose. PC3 is made up mostly of a1c, blood glucose, PC4 is made up mostly of age, bmi
 summary(pca_model)
 
 pca_var <- get_pca_var(pca_model)
-#Contribution % of features to their respective PC
 pca_var$contrib[,1]
 pca_var$contrib[,2]
 
@@ -112,31 +87,22 @@ pca_scores <- as.data.frame(pca_model$x)
 
 pca_scores$outcome <- diabetes$outcome
 
-#PCA biplot
 fviz_pca_biplot(pca_model, geom = c("point", "text"), label = "var", col.var = "red", repel = TRUE)
 
 fviz_pca_var(pca_model)
 
-knitr::purl("model.rmd", "model.R", documentation = 2)
-```
-
-
-```{R}
-
-#Create logistic regression model with outcome as response and first 2 principal components as predictors
 model <- glm(diabetes~pca_scores$PC1 + pca_scores$PC2 + pca_scores$PC3 + pca_scores$PC4, data = diabetes, family = binomial)
 
 summary(model)
 
-#Create scatterplots similar to biplot with relationship to discrete/categorical features
 autoplot(
-  pca_model, #The PCA model object
-  data = diabetes, #The dataset being plotted
-  colour = 'diabetes', #The variable being used to color the points
-  loadings=TRUE, #Indicates that the plot should also show the loadings
-  size = 3, #The size of the points
-  loadings.label = TRUE, #Indicates that the plot should label the loadings
-  loadings.label.size=5 #The size of the loading labels
+  pca_model, 
+  data = diabetes, 
+  colour = 'diabetes', 
+  loadings=TRUE,
+  size = 3, 
+  loadings.label = TRUE, 
+  loadings.label.size=5
   ) 
 
 autoplot(
@@ -168,6 +134,3 @@ autoplot(
   loadings.label = TRUE, 
   loadings.label.size=5 
   ) 
-
-knitr::purl("model.rmd", "model.R", documentation = 2)
-```
