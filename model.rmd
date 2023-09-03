@@ -1,7 +1,10 @@
 ---
-title: "Exploring Predictive Markers for Diabetes Using Principal Component Analysis and Logistic Regression"
-output: html_document
-editor_options: 
+title: Exploring Predictive Markers for Diabetes Using Principal Component Analysis
+  and Logistic Regression
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
   chunk_output_type: inline
 ---
 
